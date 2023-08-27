@@ -2,6 +2,7 @@ const { AuthService, UserService } = require('../services');
 const catchError = require('../../utils/errors/catchError');
 const AppError = require('../../utils/errors/AppError');
 const JwtUtils = require('../../utils/jwt');
+const User = require('../models/user.model');
 
 exports.login = catchError(async (req, res, next) => {
     const { login, password } = req.body;
@@ -24,8 +25,7 @@ exports.signup = catchError(async (req, res, next) => {
     if (!email || !password) {
         return next(new AppError('Please provide email and password!', 400));
     }
-    const url = await `${req.protocol}://${req.get('host')}/me`;
-    console.log(url);
+    const url = `${req.protocol}://${req.get('host')}/api/v1/users/verify/`;
     const data = await AuthService.signup(req.body, url);
     if (data instanceof AppError) {
         return next(data);
@@ -75,7 +75,6 @@ exports.protect = catchError(async (req, res, next) => {
 
     const decoded = await JwtUtils.decodeToken(token);
 
-    console.log(decoded);
     const currentUser = await UserService.getUser(decoded.userId);
     if (!currentUser) {
         return next(
@@ -99,22 +98,16 @@ exports.protect = catchError(async (req, res, next) => {
     next();
 });
 
-// exports.sendEmail = async (req, res) => {
-//     try {
-//         const { email } = req.body;
-
-//         if (!email || validator.isEmpty(email)) {
-//             throw {
-//                 code: CodeEnum.ProvideValues,
-//                 message: 'Email cannot be empty',
-//             };
-//         }
-//         await AuthService.sendEmail(email);
-//         res.status(200).send('email sended');
-//     } catch (err) {
-//         res.status(500).json(err);
-//     }
-// };
+exports.verify = catchError(async (req, res, next) => {
+    const data = await AuthService.verify(req.params.token);
+    if (data instanceof AppError) {
+        return next(data);
+    }
+    res.status(200).json({
+        status: 'success',
+        message: 'Your account has been activated',
+    });
+});
 
 // exports.setNewPassword = async (req, res) => {
 //     try {

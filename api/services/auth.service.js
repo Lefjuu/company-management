@@ -9,6 +9,8 @@ exports.login = async (login, password) => {
 
     if (!user || !(await user.correctPassword(password, user.password))) {
         return new AppError('Incorrect login or password', 401);
+    } else if (!user.active) {
+        return new AppError('Verify your account', 401);
     } else {
         return user;
     }
@@ -23,8 +25,9 @@ exports.signup = async (newUser, url) => {
     } else {
         const user = await User.create(newUser);
 
-        console.log(url);
-        await new Email(newUser, url).sendWelcome();
+        const urlWithToken = url + user.verifyToken;
+
+        await new Email(newUser, urlWithToken).sendWelcome();
         const { password, __v, active, ...userWithoutPassword } =
             user.toObject();
 
@@ -36,4 +39,16 @@ exports.me = async (userId) => {
     const user = await User.findById(userId);
 
     return user;
+};
+
+exports.verify = async (token) => {
+    const user = await User.findOne({
+        verifyToken: token,
+    });
+
+    if (!user || user.verifyTokenExpires < new Date()) {
+        return new AppError(`Token expired`, 400);
+    }
+
+    await User.findOneAndUpdate(user._id, { active: true });
 };

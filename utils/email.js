@@ -53,7 +53,7 @@ module.exports = class Email {
 
                 <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);">
                     <h2 style="color: #333;">Account Verification - Action Required</h2>
-                    <p>Dear [Your Name],</p>
+                    <p>Dear ${this.firstName},</p>
                     <p>We hope this message finds you well. In order to ensure the security of your account, we kindly ask you to complete a quick verification process by clicking on the link below:</p>
                     
                     <a href=${this.url} style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify My Account</a>

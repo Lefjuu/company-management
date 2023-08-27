@@ -1,6 +1,7 @@
 // const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const { Schema } = mongoose;
 
@@ -50,9 +51,11 @@ const userSchema = new Schema({
     passwordResetExpires: Date,
     active: {
         type: Boolean,
-        default: true,
+        default: false,
         select: false,
     },
+    verifyToken: String,
+    verifyTokenExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -76,9 +79,18 @@ userSchema.pre('save', async function (next) {
 
     this.username = username;
 
-    this.password = await bcrypt.hash(this.password, 12);
+    const activationToken = crypto.randomBytes(32).toString('hex');
+
+    this.verifyToken = crypto
+        .createHash('sha256')
+        .update(activationToken)
+        .digest('hex');
+
+    this.verifyTokenExpires = Date.now() + 10 * 60 * 1000;
 
     this.passwordConfirm = undefined;
+
+    this.password = await bcrypt.hash(this.password, 12);
     next();
 });
 
@@ -86,12 +98,6 @@ userSchema.pre('save', function (next) {
     if (!this.isModified('password') || this.isNew) return next();
 
     this.passwordChangedAt = Date.now() - 1000;
-    next();
-});
-
-userSchema.pre(/^find/, function (next) {
-    // this points to the current query
-    this.find({ active: { $ne: false } });
     next();
 });
 
