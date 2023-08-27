@@ -1,0 +1,40 @@
+{
+    "name": "company-management",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon ./src/index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "body-parser": "^1.20.2",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "express-rate-limit": "^6.9.0",
+        "helmet": "^7.0.0",
+        "jsonwebtoken": "^9.0.1",
+        "mongoose": "^7.4.5",
+        "nodemailer": "^6.9.4",
+        "validator": "^13.11.0"
+    },
+    "devDependencies": {
+        "eslint": "^5.16.0",
+        "eslint-config-airbnb": "^17.1.0",
+        "eslint-config-prettier": "^4.1.0",
+        "eslint-plugin-import": "^2.17.2",
+        "eslint-plugin-jsx-a11y": "^6.2.1",
+        "eslint-plugin-node": "^8.0.1",
+        "eslint-plugin-prettier": "^3.0.1",
+        "eslint-plugin-react": "^7.12.4",
+        "morgan": "^1.10.0",
+        "nodemon": "^2.0.20"
+    },
+    "engines": {
+        "node": "^16"
+    }
+}
