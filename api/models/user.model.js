@@ -52,7 +52,6 @@ const userSchema = new Schema({
     active: {
         type: Boolean,
         default: false,
-        select: false,
     },
     verifyToken: String,
     verifyTokenExpires: Date,

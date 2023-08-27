@@ -10,6 +10,7 @@ exports.login = async (login, password) => {
     if (!user || !(await user.correctPassword(password, user.password))) {
         return new AppError('Incorrect login or password', 401);
     } else if (!user.active) {
+        console.log(user);
         return new AppError('Verify your account', 401);
     } else {
         return user;
