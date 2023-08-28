@@ -2,7 +2,6 @@ const { AuthService, UserService } = require('../services');
 const catchError = require('../../utils/errors/catchError');
 const AppError = require('../../utils/errors/AppError');
 const JwtUtils = require('../../utils/jwt');
-const User = require('../models/user.model');
 
 exports.login = catchError(async (req, res, next) => {
     const { login, password } = req.body;
@@ -16,7 +15,7 @@ exports.login = catchError(async (req, res, next) => {
         return next(data);
     }
 
-    JwtUtils.createSendToken(data, 200, req, res);
+    return await JwtUtils.generateResponseWithTokens(data, 200, req, res);
 });
 
 exports.signup = catchError(async (req, res, next) => {
@@ -39,63 +38,133 @@ exports.signup = catchError(async (req, res, next) => {
     });
 });
 
-exports.me = catchError(async (req, res) => {
-    const userId = req.user.id;
-    if (verifyToken(req.headers, userId)) {
-        if (userId) {
-            const data = await AuthService.me(userId);
-            if (data) {
-                return res.status(200).json(data);
-            } else {
-                return new AppError('User not found', 401);
-            }
-        }
-    }
-});
+exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    next();
+};
 
 exports.protect = catchError(async (req, res, next) => {
     let token;
+    let refreshToken;
+
     if (
         req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')
     ) {
         token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.jwt) {
-        token = req.cookies.jwt;
+    } else if (req.cookies.accessToken) {
+        token = req.cookies.accessToken;
     }
 
-    if (!token) {
-        return next(
-            new AppError(
-                'You are not logged in! Please log in to get access.',
-                401,
-            ),
-        );
+    if (req.headers.refreshtoken) {
+        refreshToken = req.headers.refreshtoken;
+    } else if (req.cookies.refresh_token) {
+        refreshToken = req.cookies.refresh_token;
     }
 
-    const decoded = await JwtUtils.decodeToken(token);
+    if (token) {
+        try {
+            const decoded = await JwtUtils.decodeAccessToken(token);
+            const currentUser = await UserService.getUser(decoded.userId);
 
-    const currentUser = await UserService.getUser(decoded.userId);
-    if (!currentUser) {
-        return next(
-            new AppError(
-                'The user belonging to this token does no longer exist.',
-                401,
-            ),
-        );
-    }
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-        return next(
-            new AppError(
-                'User recently changed password! Please log in again.',
-                401,
-            ),
-        );
-    }
+            if (!currentUser) {
+                return next(
+                    new AppError(
+                        'The user belonging to this token does no longer exist.',
+                        401,
+                    ),
+                );
+            }
 
-    req.user = currentUser;
-    res.locals.user = currentUser;
-    next();
+            // if (currentUser.changedPasswordAfter(decoded.iat)) {
+            //     return next(
+            //         new AppError(
+            //             'User recently changed password! Please log in again.',
+            //             401,
+            //         ),
+            //     );
+            // }
+
+            req.user = currentUser;
+            res.locals.user = currentUser;
+
+            next();
+        } catch (err) {
+            try {
+                const decodedRefresh =
+                    await JwtUtils.decodeRefreshToken(refreshToken);
+
+                const currentUser = await UserService.getUser(
+                    decodedRefresh.userId,
+                );
+
+                if (!currentUser) {
+                    return next(
+                        new AppError(
+                            'The user belonging to this token does no longer exist.',
+                            401,
+                        ),
+                    );
+                }
+
+                return await JwtUtils.generateResponseWithTokens(
+                    currentUser,
+                    200,
+                    req,
+                    res,
+                );
+            } catch (err) {
+                console.log(err);
+                return next(
+                    new AppError(
+                        'You are not logged in! Please log in to get access.',
+                        401,
+                    ),
+                );
+            }
+        }
+    } else {
+        if (!refreshToken) {
+            return next(
+                new AppError(
+                    'You are not logged in! Please log in to get access.',
+                    401,
+                ),
+            );
+        }
+
+        try {
+            const decodedRefresh =
+                await JwtUtils.decodeRefreshToken(refreshToken);
+            const currentUser = await UserService.getUser(
+                decodedRefresh.userId,
+            );
+
+            if (!currentUser) {
+                return next(
+                    new AppError(
+                        'The user belonging to this token does no longer exist.',
+                        401,
+                    ),
+                );
+            }
+
+            return await JwtUtils.generateResponseWithTokens(
+                currentUser,
+                200,
+                req,
+                res,
+            );
+        } catch (err) {
+            console.log(err);
+            return next(
+                new AppError(
+                    'You are not logged in! Please log in to get access.',
+                    401,
+                ),
+            );
+        }
+    }
 });
 
 exports.verify = catchError(async (req, res, next) => {
@@ -108,6 +177,34 @@ exports.verify = catchError(async (req, res, next) => {
         message: 'Your account has been activated',
     });
 });
+
+exports.refresh = catchError(async (req, res, next) => {
+    const refreshToken = req.headers.refreshToken;
+    console.log(req.headers);
+
+    if (!refreshToken) {
+        return next(new AppError('Refresh token not provided.', 401));
+    }
+
+    const decoded = await JwtUtils.decodeRefreshToken(refreshToken);
+    const currentUser = await UserService.getUser(decoded.userId);
+    if (!currentUser) {
+        return next(
+            new AppError(
+                'The user belonging to this token does no longer exist.',
+                401,
+            ),
+        );
+    }
+
+    return await JwtUtils.generateResponseWithTokens(
+        currentUser,
+        200,
+        req,
+        res,
+    );
+});
+// });
 
 // exports.setNewPassword = async (req, res) => {
 //     try {

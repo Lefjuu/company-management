@@ -1,35 +1,38 @@
 const {
-    JWT_EXPIRES_IN,
     JWT_SECRET_ACCESS_KEY,
-    JWT_COOKIE_EXPIRES_IN,
     JWT_SECRET_REFRESH_KEY,
+    JWT_ACCESS_EXPIRES_IN,
+    JWT_REFRESH_EXPIRES_IN,
 } = require('../config/index');
 const jwt = require('jsonwebtoken');
 
 const generateAccessToken = (id) => {
     return jwt.sign({ userId: id }, JWT_SECRET_ACCESS_KEY, {
-        expiresIn: JWT_EXPIRES_IN,
+        expiresIn: JWT_ACCESS_EXPIRES_IN,
     });
 };
 
 const generateRefreshToken = (id) => {
-    return jwt.sign({ userId: id }, JWT_SECRET_REFRESH_KEY);
-};
-
-const signToken = (id) => {
-    return jwt.sign({ id }, JWT_SECRET_ACCESS_KEY, {
-        expiresIn: JWT_EXPIRES_IN,
+    return jwt.sign({ userId: id }, JWT_SECRET_REFRESH_KEY, {
+        expiresIn: JWT_REFRESH_EXPIRES_IN,
     });
 };
 
-exports.createSendToken = async (user, statusCode, req, res) => {
+exports.generateResponseWithTokens = async (
+    user,
+    statusCode,
+    req,
+    res,
+    message,
+) => {
     const accessToken = await generateAccessToken(user._id);
     const refreshToken = await generateRefreshToken(user._id);
 
-    res.cookie('jwt', accessToken, {
-        expires: new Date(
-            Date.now() + JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-        ),
+    res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    });
+    res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
     });
@@ -39,6 +42,7 @@ exports.createSendToken = async (user, statusCode, req, res) => {
     res.status(statusCode).json({
         status: 'success',
         accessToken,
+        message: message ? message : '',
         refreshToken,
         data: {
             user,
@@ -46,9 +50,21 @@ exports.createSendToken = async (user, statusCode, req, res) => {
     });
 };
 
-exports.decodeToken = (token) => {
+exports.decodeAccessToken = (token) => {
     return new Promise((resolve, reject) => {
         jwt.verify(token, JWT_SECRET_ACCESS_KEY, (err, decoded) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(decoded);
+            }
+        });
+    });
+};
+
+exports.decodeRefreshToken = (token) => {
+    return new Promise((resolve, reject) => {
+        jwt.verify(token, JWT_SECRET_REFRESH_KEY, (err, decoded) => {
             if (err) {
                 reject(err);
             } else {
