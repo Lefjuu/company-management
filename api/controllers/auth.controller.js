@@ -204,33 +204,37 @@ exports.refresh = catchError(async (req, res, next) => {
         res,
     );
 });
-// });
 
-// exports.setNewPassword = async (req, res) => {
-//     try {
-//         const { password, repeatedPassword } = req.body;
-//         const { string } = req.params;
+exports.forgotPassword = catchError(async (req, res, next) => {
+    if (!req.body.email) {
+        return next(new AppError('Please provide email!', 400));
+    }
+    const url = `${req.protocol}://${req.get(
+        'host',
+    )}/api/v1/users/reset-password/`;
+    const data = await AuthService.forgotPassword(req.body.email, url);
+    if (data instanceof AppError) {
+        return next(data);
+    }
+    res.status(200).json({
+        status: 'success',
+        message: 'password reset email sent',
+    });
+});
 
-//         if (
-//             !password ||
-//             validator.isEmpty(password) ||
-//             !repeatedPassword ||
-//             validator.isEmpty(repeatedPassword)
-//         ) {
-//             throw {
-//                 code: CodeEnum.ProvideValues,
-//                 message: 'Provide passwords',
-//             };
-//         }
-//         if (password !== repeatedPassword) {
-//             throw {
-//                 code: CodeEnum.PasswordsNotIdentical,
-//                 message: 'Passwords are not this same',
-//             };
-//         }
-//         await AuthService.setNewPassword(string, password);
-//         res.sendStatus(202);
-//     } catch (err) {
-//         res.status(500).json(err);
-//     }
-// };
+exports.resetPassword = catchError(async (req, res, next) => {
+    const { password, confirmPassword } = req.body;
+    if (!password || !confirmPassword) {
+        return next(
+            new AppError('Please provide password and confirm password!', 400),
+        );
+    }
+    const data = await AuthService.resetPassword(
+        req.params.token,
+        password,
+        confirmPassword,
+    );
+
+    console.log(data);
+    return await JwtUtils.generateResponseWithTokens(data, 200, req, res);
+});

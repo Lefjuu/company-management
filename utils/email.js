@@ -39,12 +39,24 @@ module.exports = class Email {
         });
     }
 
-    async send(template, subject) {
+    async send(template, subject, html) {
         const mailOptions = {
             from: this.from,
             to: this.to,
             subject,
-            html: `<!DOCTYPE html>
+            html: html,
+        };
+
+        await this.newTransport()
+            .sendMail(mailOptions)
+            .then(() => console.log('email sent'));
+    }
+
+    async sendVerificationToken() {
+        await this.send(
+            'welcome',
+            'Welcome to the Company App!',
+            `<!DOCTYPE html>
                 <html>
                 <head>
                     <title>Account Verification - Action Required</title>
@@ -67,21 +79,66 @@ module.exports = class Email {
                 </body>
                 </html>
                 `,
-        };
-
-        await this.newTransport()
-            .sendMail(mailOptions)
-            .then(() => console.log('email sent'));
-    }
-
-    async sendWelcome() {
-        await this.send('welcome', 'Welcome to the Company App!');
+        );
     }
 
     async sendPasswordReset() {
         await this.send(
             'passwordReset',
             'Your password reset token (valid for only 10 minutes)',
+            `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Reset</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 20px;
+                            border: 1px solid #ccc;
+                            border-radius: 5px;
+                        }
+                        .header {
+                            text-align: center;
+                        }
+                        .message {
+                            margin-bottom: 20px;
+                        }
+                        .link {
+                            display: inline-block;
+                            padding: 10px 20px;
+                            background-color: #007bff;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 5px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Password Reset</h1>
+                        </div>
+                        <div class="message">
+                            <p>Hello ${this.firstName}, </p>
+                            <p>We received a request to reset your password. Click the link below to reset your password:</p>
+                            <a class="link" href=${this.url}>Reset Password</a>
+                            ${this.url}
+                        </div>
+                        <p>If you didn't request a password reset, you can safely ignore this email.</p>
+                        <p>Best regards,</p>
+                        <p>Management App</p>
+                    </div>
+                </body>
+                </html>
+                `,
         );
     }
 };

@@ -1,6 +1,7 @@
 const AppError = require('../../utils/errors/AppError.js');
 const Email = require('../../utils/email.js');
 const User = require('../models/user.model.js');
+const crypto = require('crypto');
 
 exports.login = async (login, password) => {
     const user = await User.findOne({
@@ -27,7 +28,7 @@ exports.signup = async (newUser, url) => {
 
         const urlWithToken = url + user.verifyToken;
 
-        await new Email(newUser, urlWithToken).sendWelcome();
+        await new Email(newUser, urlWithToken).sendVerificationToken();
         const { password, __v, active, ...userWithoutPassword } =
             user.toObject();
 
@@ -51,4 +52,49 @@ exports.verify = async (token) => {
     }
 
     await User.findOneAndUpdate(user._id, { active: true });
+};
+
+exports.forgotPassword = async (email, url) => {
+    const user = await User.findOne({ email });
+    if (!user) {
+        return new AppError('There is no user with email address.', 400);
+    }
+
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    try {
+        const resetURL = url + resetToken;
+        await new Email(user, resetURL).sendPasswordReset();
+        return true;
+    } catch (err) {
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return new AppError(
+            'There was an error sending the email. Try again later!',
+            500,
+        );
+    }
+};
+
+exports.resetPassword = async (token, password, confirmPassword) => {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        return new AppError('Token is invalid or has expired', 400);
+    }
+    user.password = password;
+    user.passwordConfirm = confirmPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+    console.log(user);
+    return user;
 };
