@@ -18,7 +18,7 @@ const generateRefreshToken = (id) => {
     });
 };
 
-exports.generateResponseWithTokens = async (
+exports.generateResponseWithTokensAndUser = async (
     user,
     statusCode,
     req,
@@ -47,6 +47,34 @@ exports.generateResponseWithTokens = async (
         data: {
             user,
         },
+    });
+};
+
+exports.generateResponseWithTokens = async (
+    user,
+    statusCode,
+    req,
+    res,
+    message,
+) => {
+    const accessToken = await generateAccessToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id);
+
+    res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    });
+    res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    });
+
+    user.password = undefined;
+
+    res.status(statusCode).json({
+        status: 'success',
+        accessToken,
+        refreshToken,
     });
 };
 

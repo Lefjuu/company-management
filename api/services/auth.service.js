@@ -95,6 +95,5 @@ exports.resetPassword = async (token, password, confirmPassword) => {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
-    console.log(user);
     return user;
 };

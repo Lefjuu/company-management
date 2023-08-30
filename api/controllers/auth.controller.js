@@ -15,7 +15,12 @@ exports.login = catchError(async (req, res, next) => {
         return next(data);
     }
 
-    return await JwtUtils.generateResponseWithTokens(data, 200, req, res);
+    return await JwtUtils.generateResponseWithTokensAndUser(
+        data,
+        200,
+        req,
+        res,
+    );
 });
 
 exports.signup = catchError(async (req, res, next) => {
@@ -45,126 +50,35 @@ exports.getMe = (req, res, next) => {
 
 exports.protect = catchError(async (req, res, next) => {
     let token;
-    let refreshToken;
-
     if (
         req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer')
     ) {
         token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.accessToken) {
-        token = req.cookies.accessToken;
     }
 
-    if (req.headers.refreshtoken) {
-        refreshToken = req.headers.refreshtoken;
-    } else if (req.cookies.refresh_token) {
-        refreshToken = req.cookies.refresh_token;
+    if (!token) {
+        return next(
+            new AppError(
+                'You are not logged in! Please log in to get access.',
+                401,
+            ),
+        );
     }
 
-    if (token) {
-        try {
-            const decoded = await JwtUtils.decodeAccessToken(token);
-            const currentUser = await UserService.getUser(decoded.userId);
-
-            if (!currentUser) {
-                return next(
-                    new AppError(
-                        'The user belonging to this token does no longer exist.',
-                        401,
-                    ),
-                );
-            }
-
-            // if (currentUser.changedPasswordAfter(decoded.iat)) {
-            //     return next(
-            //         new AppError(
-            //             'User recently changed password! Please log in again.',
-            //             401,
-            //         ),
-            //     );
-            // }
-
-            req.user = currentUser;
-            res.locals.user = currentUser;
-
-            next();
-        } catch (err) {
-            try {
-                const decodedRefresh =
-                    await JwtUtils.decodeRefreshToken(refreshToken);
-
-                const currentUser = await UserService.getUser(
-                    decodedRefresh.userId,
-                );
-
-                if (!currentUser) {
-                    return next(
-                        new AppError(
-                            'The user belonging to this token does no longer exist.',
-                            401,
-                        ),
-                    );
-                }
-
-                return await JwtUtils.generateResponseWithTokens(
-                    currentUser,
-                    200,
-                    req,
-                    res,
-                );
-            } catch (err) {
-                console.log(err);
-                return next(
-                    new AppError(
-                        'You are not logged in! Please log in to get access.',
-                        401,
-                    ),
-                );
-            }
-        }
-    } else {
-        if (!refreshToken) {
-            return next(
-                new AppError(
-                    'You are not logged in! Please log in to get access.',
-                    401,
-                ),
-            );
-        }
-
-        try {
-            const decodedRefresh =
-                await JwtUtils.decodeRefreshToken(refreshToken);
-            const currentUser = await UserService.getUser(
-                decodedRefresh.userId,
-            );
-
-            if (!currentUser) {
-                return next(
-                    new AppError(
-                        'The user belonging to this token does no longer exist.',
-                        401,
-                    ),
-                );
-            }
-
-            return await JwtUtils.generateResponseWithTokens(
-                currentUser,
-                200,
-                req,
-                res,
-            );
-        } catch (err) {
-            console.log(err);
-            return next(
-                new AppError(
-                    'You are not logged in! Please log in to get access.',
-                    401,
-                ),
-            );
-        }
+    const decoded = await JwtUtils.decodeAccessToken(token);
+    const currentUser = await UserService.getUser(decoded.userId);
+    if (!currentUser) {
+        return next(
+            new AppError(
+                'The user belonging to this token does no longer exist.',
+                401,
+            ),
+        );
     }
+
+    req.user = currentUser;
+    next();
 });
 
 exports.verify = catchError(async (req, res, next) => {
@@ -179,8 +93,7 @@ exports.verify = catchError(async (req, res, next) => {
 });
 
 exports.refresh = catchError(async (req, res, next) => {
-    const refreshToken = req.headers.refreshToken;
-    console.log(req.headers);
+    const refreshToken = req.headers.refreshtoken;
 
     if (!refreshToken) {
         return next(new AppError('Refresh token not provided.', 401));
@@ -235,6 +148,27 @@ exports.resetPassword = catchError(async (req, res, next) => {
         confirmPassword,
     );
 
-    console.log(data);
-    return await JwtUtils.generateResponseWithTokens(data, 200, req, res);
+    return await JwtUtils.generateResponseWithTokensAndUser(
+        data,
+        200,
+        req,
+        res,
+    );
 });
+
+exports.restrictTo = (...roles) => {
+    return (req, res, next) => {
+        console.log(roles);
+        console.log(req.user);
+        if (!roles.includes(req.user.role)) {
+            return next(
+                new AppError(
+                    'You do not have permission to perform this action',
+                    403,
+                ),
+            );
+        }
+
+        next();
+    };
+};
