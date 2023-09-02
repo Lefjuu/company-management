@@ -38,7 +38,7 @@ const userSchema = new Schema({
             message: 'Passwords are not the same!',
         },
     },
-    list: {
+    timetables: {
         type: Array,
     },
     role: {

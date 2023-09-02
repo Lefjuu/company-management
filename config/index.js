@@ -5,7 +5,7 @@ dotenv.config();
 
 exports.BASE_PATH = path.normalize(path.join(__dirname, '..'));
 
-exports.PROJECT_MODE = process.env.PROJECT_MODE;
+exports.NODE_ENV = process.env.NODE_ENV;
 exports.PROJECT_NAME = process.env.PROJECT_NAME;
 
 exports.SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;

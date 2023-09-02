@@ -37,6 +37,7 @@ exports.signup = catchError(async (req, res, next) => {
 
     res.status(201).json({
         status: 'success',
+        message: 'verification account email sent',
         data: {
             user: data,
         },
@@ -158,8 +159,6 @@ exports.resetPassword = catchError(async (req, res, next) => {
 
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {
-        console.log(roles);
-        console.log(req.user);
         if (!roles.includes(req.user.role)) {
             return next(
                 new AppError(
@@ -168,7 +167,6 @@ exports.restrictTo = (...roles) => {
                 ),
             );
         }
-
         next();
     };
 };

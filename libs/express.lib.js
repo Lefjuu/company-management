@@ -5,8 +5,10 @@ const cors = require('cors');
 const morgan = require('morgan');
 const globalErrorHandler = require('../utils/errors/ErrorHandler');
 const rateLimit = require('express-rate-limit');
-const { PROJECT_MODE } = require('../config/index.js');
+const { NODE_ENV } = require('../config/index.js');
 const userRouter = require('../api/routes/user.routes');
+const taskRouter = require('../api/routes/task.routes');
+const timetableRouter = require('../api/routes/timetable.routes');
 const AppError = require('../utils/errors/AppError');
 
 const create = async (app) => {
@@ -40,10 +42,12 @@ const create = async (app) => {
 
     app.use(cors(corsOptions));
 
-    if (PROJECT_MODE === 'development') {
+    if (NODE_ENV === 'development') {
         app.use(morgan('dev'));
     }
     app.use('/api/v1/users', userRouter);
+    app.use('/api/v1/task', taskRouter);
+    app.use('/api/v1/timetable', timetableRouter);
 
     app.all('*', (req, res, next) => {
         next(

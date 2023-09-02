@@ -1,8 +1,4 @@
-const {
-    PROJECT_MODE,
-    SERVER_HOSTNAME,
-    SERVER_PORT,
-} = require('./config/index.js');
+const { NODE_ENV, SERVER_HOSTNAME, SERVER_PORT } = require('./config/index.js');
 const { init, app } = require('./app.js');
 
 process.on('uncaughtException', (err) => {
@@ -18,7 +14,7 @@ process.on('uncaughtException', (err) => {
         app.listen(SERVER_PORT, () => {
             console.log(
                 `🚀 Server is ready!
-                \nmode: ${PROJECT_MODE}
+                \nmode: ${NODE_ENV}
                 \nserver: http://${SERVER_HOSTNAME}:${SERVER_PORT}`,
             );
         });

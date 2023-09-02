@@ -15,3 +15,10 @@ exports.createUser = async (user) => {
 exports.deleteUser = async (id) => {
     return await User.findByIdAndDelete(id);
 };
+
+exports.updateUser = async (id, body) => {
+    return await User.findByIdAndUpdate(id, body, {
+        new: true,
+        runValidators: true,
+    });
+};

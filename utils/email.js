@@ -5,7 +5,7 @@ const {
     EMAIL_USERNAME,
     EMAIL_PASSWORD,
     EMAIL_FROM,
-    PROJECT_MODE,
+    NODE_ENV,
 } = require('../config');
 
 module.exports = class Email {
@@ -18,7 +18,7 @@ module.exports = class Email {
     }
 
     newTransport() {
-        // if (PROJECT_MODE === 'production') {
+        // if (NODE_ENV === 'production') {
         //     // Sendgrid
         //     return nodemailer.createTransport({
         //         service: 'SendGrid',
@@ -65,7 +65,7 @@ module.exports = class Email {
 
                 <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);">
                     <h2 style="color: #333;">Account Verification - Action Required</h2>
-                    <p>Dear ${this.firstName},</p>
+                    <p>Dear ${this.username},</p>
                     <p>We hope this message finds you well. In order to ensure the security of your account, we kindly ask you to complete a quick verification process by clicking on the link below:</p>
                     
                     <a href=${this.url} style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Verify My Account</a>
@@ -127,7 +127,7 @@ module.exports = class Email {
                             <h1>Password Reset</h1>
                         </div>
                         <div class="message">
-                            <p>Hello ${this.firstName}, </p>
+                            <p>Hello ${this.username}, </p>
                             <p>We received a request to reset your password. Click the link below to reset your password:</p>
                             <a class="link" href=${this.url}>Reset Password</a>
                             ${this.url}

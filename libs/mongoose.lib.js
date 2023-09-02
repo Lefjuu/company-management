@@ -4,12 +4,12 @@ const {
     MONGODB_DATABASE,
     MONGODB_USERNAME,
     MONGODB_PASSWORD,
-    PROJECT_MODE,
+    NODE_ENV,
 } = require('../config/index.js');
 
 module.exports = db = () => {
     return new Promise((resolve, reject) => {
-        if (PROJECT_MODE === 'development') {
+        if (NODE_ENV === 'development') {
             mongoose.set('debug', true);
         }
         mongoose.set('strictQuery', false);

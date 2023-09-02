@@ -1,4 +1,4 @@
-const { PROJECT_MODE } = require('../../config');
+const { NODE_ENV } = require('../../config');
 const AppError = require('./AppError');
 
 const handleCastErrorDB = (err) => {
@@ -76,9 +76,9 @@ module.exports = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
-    if (PROJECT_MODE === 'development') {
+    if (NODE_ENV === 'development') {
         sendErrorDev(err, req, res);
-    } else if (PROJECT_MODE === 'production') {
+    } else if (NODE_ENV === 'production') {
         let error = { ...err };
         error.message = err.message;
 

@@ -50,13 +50,7 @@ exports.generateResponseWithTokensAndUser = async (
     });
 };
 
-exports.generateResponseWithTokens = async (
-    user,
-    statusCode,
-    req,
-    res,
-    message,
-) => {
+exports.generateResponseWithTokens = async (user, statusCode, req, res) => {
     const accessToken = await generateAccessToken(user._id);
     const refreshToken = await generateRefreshToken(user._id);
 

@@ -42,10 +42,10 @@ exports.createUser = catchError(async (req, res, next) => {
 });
 
 exports.deleteUser = catchError(async (req, res, next) => {
-    const doc = await UserService.deleteUser(req.params.id);
+    const user = await UserService.deleteUser(req.params.id);
 
-    if (!doc) {
-        return next(new AppError('No document found with that ID', 404));
+    if (!user) {
+        return next(new AppError('User not found', 400));
     }
 
     res.status(204).json({
@@ -54,24 +54,22 @@ exports.deleteUser = catchError(async (req, res, next) => {
     });
 });
 
-exports.updateUser = (Model) =>
-    catchAsync(async (req, res, next) => {
-        const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+exports.updateUser = catchError(async (req, res, next) => {
+    if (req.body.password) {
+        return next(new AppError(`Don't update password!`, 400));
+    }
+    const user = await UserService.updateUser(req.params.id, req.body);
+    if (!user) {
+        return next(new AppError('User not found', 400));
+    }
 
-        if (!doc) {
-            return next(new AppError('No document found with that ID', 404));
-        }
-
-        res.status(200).json({
-            status: 'success',
-            data: {
-                data: doc,
-            },
-        });
+    res.status(200).json({
+        status: 'success',
+        data: {
+            data: user,
+        },
     });
+});
 
 // exports.getAll = (Model) =>
 //     catchAsync(async (req, res, next) => {
