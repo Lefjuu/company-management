@@ -13,6 +13,7 @@ exports.getTimetable = async (param, userId) => {
     if (isDateFormat(param)) {
         const existingTimetable = await Timetable.findOne({
             currentDate: param,
+            userId: userId,
         });
 
         if (existingTimetable) {
@@ -57,6 +58,8 @@ exports.getTodayTimetable = async (userId) => {
         console.log('Created timetable:', createdTimetable);
         return createdTimetable;
     }
+
+    console.log(existingTimetable);
     return existingTimetable;
 };
 

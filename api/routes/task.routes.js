@@ -1,9 +1,12 @@
 const express = require('express');
-const { taskController } = require('../controllers');
+const { taskController, authController } = require('../controllers');
 
 const router = express.Router();
 
-router.get('/:id', taskController.getTask);
+router.get('/:id', authController.protect, taskController.getTask);
+
+router.use(authController.protect, authController.restrictTo('admin'));
+
 router.post('/', taskController.createTask);
 
 module.exports = router;

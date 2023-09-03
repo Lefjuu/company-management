@@ -30,7 +30,7 @@ const taskSchema = mongoose.Schema({
     description: {
         type: String,
     },
-    timetables: {
+    timetable: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Timetable',
     },
@@ -40,17 +40,17 @@ const taskSchema = mongoose.Schema({
     },
 });
 
-taskSchema.pre('save', function (next) {
-    const startDateParts = this.startDate.split(':').map(Number);
-    const endDateParts = this.endDate.split(':').map(Number);
-    const startTime = new Date(0, 0, 0, startDateParts[0], startDateParts[1]);
-    const endTime = new Date(0, 0, 0, endDateParts[0], endDateParts[1]);
+// taskSchema.pre('save', function (next) {
+//     const startDateParts = this.startDate.split(':').map(Number);
+//     const endDateParts = this.endDate.split(':').map(Number);
+//     const startTime = new Date(0, 0, 0, startDateParts[0], startDateParts[1]);
+//     const endTime = new Date(0, 0, 0, endDateParts[0], endDateParts[1]);
 
-    if (startTime >= endTime) {
-        return next(new Error('startDate must be earlier than endDate'));
-    }
-    next();
-});
+//     if (startTime >= endTime) {
+//         return next(new Error('startDate must be earlier than endDate'));
+//     }
+//     next();
+// });
 
 const Task = mongoose.model('Task', taskSchema);
 
