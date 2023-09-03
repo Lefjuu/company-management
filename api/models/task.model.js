@@ -38,6 +38,11 @@ const taskSchema = mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
 });
 
 // taskSchema.pre('save', function (next) {

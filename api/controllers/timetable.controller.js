@@ -7,12 +7,21 @@ exports.getTimetable = catchError(async (req, res, next) => {
     if (!param) {
         return next(new AppError('Please provide timetableId!', 400));
     }
-    const timetable = await TimetableService.getTimetable(param, req.user._id);
-    if (
-        timetable.userId.toString() !== req.user._id.toString() &&
-        req.user.role !== 'admin'
-    ) {
-        return next(new AppError('You have no access', 403));
+    let timetable;
+    if (req.query.user && req.user.role === 'admin') {
+        timetable = await TimetableService.getTimetable(
+            param,
+            req.user._id,
+            req.query.user,
+        );
+    } else {
+        timetable = await TimetableService.getTimetable(param, req.user._id);
+        if (
+            timetable.userId.toString() !== req.user._id.toString() &&
+            req.user.role !== 'admin'
+        ) {
+            return next(new AppError('You have no access', 403));
+        }
     }
     res.status(200).json({
         status: 'success',

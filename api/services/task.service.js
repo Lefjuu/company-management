@@ -9,20 +9,20 @@ exports.getTask = async (id) => {
 exports.createTask = async (task) => {
     const { timetable, startDate, endDate } = task;
 
-    if (startDate > endDate) {
-        throw new AppError(`StartDate can't be before endDate`);
+    if (startDate >= endDate) {
+        throw new AppError(`Invalid Hours`, 400);
     }
 
     const timetableDoc = await Timetable.findById(timetable);
     if (!timetableDoc) {
-        throw new AppError('Timetable not found');
+        throw new AppError('Timetable not found', 400);
     }
 
-    const timetableStartDate = timetableDoc.startDate;
-    const timetableEndDate = timetableDoc.endDate;
-
-    if (startDate < timetableStartDate || endDate > timetableEndDate) {
-        throw new AppError('Task time is outside the timetable time range');
+    if (startDate < timetableDoc.startDate || endDate > timetableDoc.endDate) {
+        throw new AppError(
+            'Task time is outside the timetable time range',
+            400,
+        );
     }
 
     const overlappingTasks = await Task.find({
@@ -36,7 +36,7 @@ exports.createTask = async (task) => {
     });
 
     if (overlappingTasks.length > 0) {
-        throw new AppError('Task time overlaps with existing tasks');
+        throw new AppError('Task time overlaps with existing tasks', 400);
     }
 
     const createdTask = await Task.create({
@@ -51,4 +51,20 @@ exports.createTask = async (task) => {
     );
 
     return createdTask;
+};
+
+exports.updateTaskStatus = async (id) => {
+    const task = await Task.findById(id);
+    if (!task) {
+        throw new AppError('Task not found', 400);
+    }
+    const updatedTask = await Task.updateOne(
+        {
+            _id: task._id,
+        },
+        {
+            ended: !task.ended,
+        },
+    );
+    return updatedTask;
 };

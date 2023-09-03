@@ -9,11 +9,29 @@ function isMongoObjectId(input) {
     return mongoIdRegex.test(input);
 }
 
-exports.getTimetable = async (param, userId) => {
+exports.getTimetable = async (param, currentUser, employeeId) => {
+    if (employeeId && isDateFormat(param)) {
+        const existingTimetable = await Timetable.findOne({
+            userId: employeeId,
+            currentDate: param,
+        });
+
+        console.log(employeeId);
+        console.log(existingTimetable);
+
+        if (existingTimetable) {
+            // console.log(existingTimetable);
+            return existingTimetable;
+        }
+        return await Timetable.create({
+            userId: employeeId,
+            currentDate: param,
+        });
+    }
     if (isDateFormat(param)) {
         const existingTimetable = await Timetable.findOne({
             currentDate: param,
-            userId: userId,
+            userId: currentUser,
         });
 
         if (existingTimetable) {
@@ -28,7 +46,7 @@ exports.getTimetable = async (param, userId) => {
     }
 
     const newTimetable = await Timetable.create({
-        userId,
+        userId: currentUser,
         currentDate: param,
     });
 
