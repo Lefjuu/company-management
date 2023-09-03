@@ -53,18 +53,31 @@ exports.createTask = async (task) => {
     return createdTask;
 };
 
-exports.updateTaskStatus = async (id) => {
+exports.updateTask = async (id, body, role) => {
     const task = await Task.findById(id);
     if (!task) {
         throw new AppError('Task not found', 400);
     }
-    const updatedTask = await Task.updateOne(
-        {
-            _id: task._id,
-        },
-        {
-            ended: !task.ended,
-        },
-    );
+    let updatedTask;
+    if (role === 'admin') {
+        updatedTask = await Task.findByIdAndUpdate({ _id: task.id }, body, {
+            new: true,
+            runValidators: true,
+        });
+    } else {
+        updatedTask = await Task.findByIdAndUpdate(
+            {
+                _id: task._id,
+            },
+            {
+                ended: body.ended,
+                description: body.description,
+            },
+            {
+                new: true,
+                runValidators: true,
+            },
+        );
+    }
     return updatedTask;
 };

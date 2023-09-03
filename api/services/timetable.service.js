@@ -16,11 +16,7 @@ exports.getTimetable = async (param, currentUser, employeeId) => {
             currentDate: param,
         });
 
-        console.log(employeeId);
-        console.log(existingTimetable);
-
         if (existingTimetable) {
-            // console.log(existingTimetable);
             return existingTimetable;
         }
         return await Timetable.create({
@@ -73,11 +69,9 @@ exports.getTodayTimetable = async (userId) => {
             userId,
             currentDate: formattedDate,
         });
-        console.log('Created timetable:', createdTimetable);
         return createdTimetable;
     }
 
-    console.log(existingTimetable);
     return existingTimetable;
 };
 

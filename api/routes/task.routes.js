@@ -3,12 +3,10 @@ const { taskController, authController } = require('../controllers');
 
 const router = express.Router();
 
-router.get('/:id', authController.protect, taskController.getTask);
-router.patch(
-    '/status/:id',
-    authController.protect,
-    taskController.updateTaskStatus,
-);
+router
+    .route('/:id')
+    .get(authController.protect, taskController.getTask)
+    .patch(authController.protect, taskController.updateTaskUser);
 
 router.use(authController.protect, authController.restrictTo('admin'));
 

@@ -14,7 +14,6 @@ exports.getTask = catchError(async (req, res, next) => {
     ) {
         return next(new AppError('You have no access', 403));
     }
-    console.log(task);
 
     res.status(200).json({
         status: 'success',
@@ -46,23 +45,27 @@ exports.createTask = catchError(async (req, res, next) => {
     });
 });
 
-exports.updateTaskStatus = catchError(async (req, res, next) => {
+exports.updateTaskUser = catchError(async (req, res, next) => {
     const { id } = req.params;
     if (!id) {
         return next(new AppError('Please provide id!', 400));
     }
     const task = await TaskService.getTask(id);
+
     if (task instanceof AppError) {
         return next(task);
     }
-    console.log(task);
     if (
         task.userId.toString() !== req.user._id.toString() &&
         req.user.role !== 'admin'
     ) {
         return next(new AppError('You have no access', 403));
     }
-    const updatedTask = await TaskService.updateTaskStatus(id);
+    const updatedTask = await TaskService.updateTask(
+        id,
+        req.body,
+        req.user.role,
+    );
 
     res.status(200).json({
         status: 'success',
