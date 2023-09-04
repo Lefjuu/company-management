@@ -81,3 +81,30 @@ exports.updateTask = async (id, body, role) => {
     }
     return updatedTask;
 };
+
+exports.deleteTask = async (id) => {
+    const task = await Task.findByIdAndDelete(id);
+
+    if (!task) {
+        return false;
+    }
+
+    const timetable = await Timetable.updateOne(
+        {
+            _id: task.timetable,
+        },
+        {
+            $pull: { tasks: task._id },
+        },
+        {
+            new: true,
+            runValidators: true,
+        },
+    );
+
+    if (!timetable) {
+        return false;
+    }
+
+    return true;
+};

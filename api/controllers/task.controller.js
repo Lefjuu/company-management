@@ -45,7 +45,7 @@ exports.createTask = catchError(async (req, res, next) => {
     });
 });
 
-exports.updateTaskUser = catchError(async (req, res, next) => {
+exports.updateTask = catchError(async (req, res, next) => {
     const { id } = req.params;
     if (!id) {
         return next(new AppError('Please provide id!', 400));
@@ -71,6 +71,22 @@ exports.updateTaskUser = catchError(async (req, res, next) => {
         status: 'success',
         data: {
             data: updatedTask,
+        },
+    });
+});
+
+exports.deleteTask = catchError(async (req, res, next) => {
+    const { id } = req.params;
+    if (!id) {
+        return next(new AppError('Please provide id!', 400));
+    }
+
+    const task = await TaskService.deleteTask(id);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            data: task,
         },
     });
 });
