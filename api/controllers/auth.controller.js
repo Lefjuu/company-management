@@ -29,7 +29,7 @@ exports.signup = catchError(async (req, res, next) => {
     if (!email || !password) {
         return next(new AppError('Please provide email and password!', 400));
     }
-    const url = `${req.protocol}://${req.get('host')}/api/v1/users/verify/`;
+    const url = `${req.protocol}://${req.get('host')}/api/v1/verify/`;
     const data = await AuthService.signup(req.body, url);
     if (data instanceof AppError) {
         return next(data);
@@ -123,9 +123,7 @@ exports.forgotPassword = catchError(async (req, res, next) => {
     if (!req.body.email) {
         return next(new AppError('Please provide email!', 400));
     }
-    const url = `${req.protocol}://${req.get(
-        'host',
-    )}/api/v1/users/reset-password/`;
+    const url = `${req.protocol}://${req.get('host')}/api/v1/reset-password/`;
     const data = await AuthService.forgotPassword(req.body.email, url);
     if (data instanceof AppError) {
         return next(data);
@@ -173,7 +171,7 @@ exports.restrictTo = (...roles) => {
 
 exports.sendVerifyEmail = catchError(async (req, res, next) => {
     const { email } = req.body;
-    const url = `${req.protocol}://${req.get('host')}/api/v1/users/verify/`;
+    const url = `${req.protocol}://${req.get('host')}/api/v1/verify/`;
     if (!email) {
         return next(new AppError('Please provide email!', 400));
     }
