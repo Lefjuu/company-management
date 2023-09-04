@@ -57,10 +57,10 @@ exports.verify = async (token) => {
 exports.forgotPassword = async (email, url) => {
     const user = await User.findOne({ email });
     if (!user) {
-        return new AppError('There is no user with email address.', 400);
+        return new AppError('There is no user with this email address.', 400);
     }
 
-    const resetToken = user.createPasswordResetToken();
+    const resetToken = await user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
     try {
@@ -96,4 +96,16 @@ exports.resetPassword = async (token, password, confirmPassword) => {
     user.passwordResetExpires = undefined;
     await user.save();
     return user;
+};
+
+exports.sendVerifyEmail = async (email, url) => {
+    const user = await User.findOne({ email });
+    if (!user) {
+        return new AppError('There is no user with this email address.', 400);
+    }
+
+    const urlWithToken = url + user.verifyToken;
+
+    await new Email(user, urlWithToken).sendVerificationToken();
+    return true;
 };

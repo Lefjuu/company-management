@@ -170,3 +170,19 @@ exports.restrictTo = (...roles) => {
         next();
     };
 };
+
+exports.sendVerifyEmail = catchError(async (req, res, next) => {
+    const { email } = req.body;
+    const url = `${req.protocol}://${req.get('host')}/api/v1/users/verify/`;
+    if (!email) {
+        return next(new AppError('Please provide email!', 400));
+    }
+    const data = await AuthService.sendVerifyEmail(email, url);
+    if (data instanceof AppError) {
+        return next(data);
+    }
+    res.status(200).json({
+        status: 'success',
+        message: 'verify email resend',
+    });
+});
