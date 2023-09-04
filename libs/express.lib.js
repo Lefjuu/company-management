@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const globalErrorHandler = require('../utils/errors/ErrorHandler');
 const rateLimit = require('express-rate-limit');
 const { NODE_ENV } = require('../config/index.js');
+const authRouter = require('../api/routes/auth.routes');
 const userRouter = require('../api/routes/user.routes');
 const taskRouter = require('../api/routes/task.routes');
 const timetableRouter = require('../api/routes/timetable.routes');
@@ -45,6 +46,7 @@ const create = async (app) => {
     if (NODE_ENV === 'development') {
         app.use(morgan('dev'));
     }
+    app.use('/api/v1', authRouter);
     app.use('/api/v1/users', userRouter);
     app.use('/api/v1/task', taskRouter);
     app.use('/api/v1/timetable', timetableRouter);
