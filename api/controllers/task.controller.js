@@ -81,12 +81,15 @@ exports.deleteTask = catchError(async (req, res, next) => {
         return next(new AppError('Please provide id!', 400));
     }
 
-    const task = await TaskService.deleteTask(id);
+    const data = await TaskService.deleteTask(id);
+    if (data instanceof AppError) {
+        return next(data);
+    }
 
     res.status(200).json({
         status: 'success',
         data: {
-            data: task,
+            data,
         },
     });
 });

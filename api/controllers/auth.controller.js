@@ -146,6 +146,9 @@ exports.resetPassword = catchError(async (req, res, next) => {
         password,
         confirmPassword,
     );
+    if (data instanceof AppError) {
+        return next(data);
+    }
 
     return await JwtUtils.generateResponseWithTokensAndUser(
         data,

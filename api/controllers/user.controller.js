@@ -32,7 +32,9 @@ exports.getAllUsers = catchError(async (req, res, next) => {
 
 exports.createUser = catchError(async (req, res, next) => {
     const user = await UserService.createUser(req.body);
-
+    if (user instanceof AppError) {
+        return next(user);
+    }
     res.status(201).json({
         status: 'success',
         data: {
@@ -43,7 +45,9 @@ exports.createUser = catchError(async (req, res, next) => {
 
 exports.deleteUser = catchError(async (req, res, next) => {
     const user = await UserService.deleteUser(req.params.id);
-
+    if (user instanceof AppError) {
+        return next(user);
+    }
     if (!user) {
         return next(new AppError('User not found', 400));
     }

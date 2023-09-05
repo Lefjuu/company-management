@@ -14,8 +14,14 @@ exports.getTimetable = catchError(async (req, res, next) => {
             req.user._id,
             req.query.user,
         );
+        if (timetable instanceof AppError) {
+            return next(timetable);
+        }
     } else {
         timetable = await TimetableService.getTimetable(param, req.user._id);
+        if (timetable instanceof AppError) {
+            return next(timetable);
+        }
         if (
             timetable.userId.toString() !== req.user._id.toString() &&
             req.user.role !== 'admin'
@@ -33,6 +39,9 @@ exports.getTimetable = catchError(async (req, res, next) => {
 
 exports.getTodayTimetable = catchError(async (req, res, next) => {
     const timetable = await TimetableService.getTodayTimetable(req.user._id);
+    if (timetable instanceof AppError) {
+        return next(timetable);
+    }
     if (
         timetable.userId.toString() !== req.user._id.toString() &&
         req.user.role !== 'admin'
