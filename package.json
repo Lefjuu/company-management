@@ -6,7 +6,8 @@
     "scripts": {
         "start": "nodemon ./src/index.js",
         "start:prod": "NODE_ENV=production nodemon ./src/index.js",
-        "debug": "ndb index.js"
+        "debug": "ndb index.js",
+        "swagger-autogen": "node ./libs/swagger.lib.js"
     },
     "author": "",
     "license": "ISC",
@@ -34,7 +35,10 @@
         "eslint-plugin-prettier": "^3.0.1",
         "eslint-plugin-react": "^7.12.4",
         "morgan": "^1.10.0",
-        "nodemon": "^2.0.20"
+        "nodemon": "^2.0.20",
+        "swagger-autogen": "^2.23.5",
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.0"
     },
     "engines": {
         "node": "^16"

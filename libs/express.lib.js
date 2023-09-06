@@ -13,6 +13,8 @@ const {
     taskRoutes,
     timetableRoutes,
 } = require('../api/routes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../swagger-output.json');
 
 const create = async (app) => {
     app.use(helmet());
@@ -48,6 +50,7 @@ const create = async (app) => {
     if (NODE_ENV === 'development') {
         app.use(morgan('dev'));
     }
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     app.use('/api/v1', authRoutes);
     app.use('/api/v1/users', userRoutes);
     app.use('/api/v1/task', taskRoutes);
