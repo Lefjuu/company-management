@@ -1,4 +1,5 @@
 const { TimetableModel } = require('../models');
+const { redisClient, getAsync, setAsync } = require('../../libs/redis.lib');
 
 function isDateFormat(input) {
     const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
@@ -49,7 +50,7 @@ exports.getTimetable = async (param, currentUser, employeeId) => {
     return newTimetable;
 };
 
-exports.getTodayTimetable = async (userId) => {
+exports.getTodayTimetable = async (userId, callback) => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const formattedDate = `${currentDate
@@ -59,18 +60,52 @@ exports.getTodayTimetable = async (userId) => {
         .toString()
         .padStart(2, '0')}-${currentYear}`;
 
-    const existingTimetable = await TimetableModel.findOne({
-        userId: userId,
-        currentDate: formattedDate,
-    });
+    const cacheKey = `timetable_${userId}_${formattedDate}`;
 
-    if (!existingTimetable) {
-        const createdTimetable = await TimetableModel.create({
-            userId,
+    try {
+        console.log(cacheKey);
+        const cachedData = await getAsync(cacheKey);
+        if (cachedData) {
+            console.log(cachedData);
+            return JSON.parse(cachedData);
+        }
+
+        console.log('Cache miss, fetching from the database.');
+
+        const existingTimetable = await TimetableModel.findOne({
+            userId: userId,
             currentDate: formattedDate,
         });
-        return createdTimetable;
-    }
 
-    return existingTimetable;
+        if (!existingTimetable) {
+            console.log(
+                'Data not found in the database, creating a new timetable.',
+            );
+
+            const createdTimetable = await TimetableModel.create({
+                userId,
+                currentDate: formattedDate,
+            });
+
+            await setAsync(
+                cacheKey,
+                JSON.stringify(createdTimetable),
+                'EX',
+                3600,
+            );
+
+            console.log('New timetable created and cached.');
+
+            return createdTimetable;
+        }
+
+        await setAsync(cacheKey, JSON.stringify(existingTimetable), 'EX', 7200);
+
+        console.log('Existing timetable fetched from the database and cached.');
+
+        return existingTimetable;
+    } catch (error) {
+        console.error('Error:', error);
+        return callback(error, null);
+    }
 };
