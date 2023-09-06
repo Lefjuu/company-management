@@ -11,9 +11,6 @@ const init = async () => {
 
     // mongoose
     await mongoose();
-
-    // // routes
-    // await routes(app);
 };
 
 module.exports = { init, app };

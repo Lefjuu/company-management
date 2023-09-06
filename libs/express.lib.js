@@ -6,10 +6,6 @@ const morgan = require('morgan');
 const globalErrorHandler = require('../utils/errors/ErrorHandler');
 const rateLimit = require('express-rate-limit');
 const { NODE_ENV } = require('../config/index.js');
-// const authRouter = require('../api/routes/auth.routes');
-// const userRouter = require('../api/routes/user.routes');
-// const taskRouter = require('../api/routes/task.routes');
-// const timetableRouter = require('../api/routes/timetable.routes');
 const AppError = require('../utils/errors/AppError');
 const {
     authRoutes,
