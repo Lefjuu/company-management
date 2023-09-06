@@ -1,4 +1,4 @@
-const Timetable = require('../models/timetable.model');
+const { TimetableModel } = require('../models');
 
 function isDateFormat(input) {
     const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
@@ -11,7 +11,7 @@ function isMongoObjectId(input) {
 
 exports.getTimetable = async (param, currentUser, employeeId) => {
     if (employeeId && isDateFormat(param)) {
-        const existingTimetable = await Timetable.findOne({
+        const existingTimetable = await TimetableModel.findOne({
             userId: employeeId,
             currentDate: param,
         });
@@ -19,13 +19,13 @@ exports.getTimetable = async (param, currentUser, employeeId) => {
         if (existingTimetable) {
             return existingTimetable;
         }
-        return await Timetable.create({
+        return await TimetableModel.create({
             userId: employeeId,
             currentDate: param,
         });
     }
     if (isDateFormat(param)) {
-        const existingTimetable = await Timetable.findOne({
+        const existingTimetable = await TimetableModel.findOne({
             currentDate: param,
             userId: currentUser,
         });
@@ -34,14 +34,14 @@ exports.getTimetable = async (param, currentUser, employeeId) => {
             return existingTimetable;
         }
     } else if (isMongoObjectId(param)) {
-        const existingTimetable = await Timetable.findById(param);
+        const existingTimetable = await TimetableModel.findById(param);
 
         if (existingTimetable) {
             return existingTimetable;
         }
     }
 
-    const newTimetable = await Timetable.create({
+    const newTimetable = await TimetableModel.create({
         userId: currentUser,
         currentDate: param,
     });
@@ -59,13 +59,13 @@ exports.getTodayTimetable = async (userId) => {
         .toString()
         .padStart(2, '0')}-${currentYear}`;
 
-    const existingTimetable = await Timetable.findOne({
+    const existingTimetable = await TimetableModel.findOne({
         userId: userId,
         currentDate: formattedDate,
     });
 
     if (!existingTimetable) {
-        const createdTimetable = await Timetable.create({
+        const createdTimetable = await TimetableModel.create({
             userId,
             currentDate: formattedDate,
         });
@@ -73,21 +73,4 @@ exports.getTodayTimetable = async (userId) => {
     }
 
     return existingTimetable;
-};
-
-exports.getAllTimetables = async () => {};
-
-exports.createTimetable = async (user) => {
-    return await Timetable.create(user);
-};
-
-exports.deleteTimetable = async (id) => {
-    return await User.findByIdAndDelete(id);
-};
-
-exports.updateTimetable = async (id, body) => {
-    return await User.findByIdAndUpdate(id, body, {
-        new: true,
-        runValidators: true,
-    });
 };

@@ -6,11 +6,17 @@ const morgan = require('morgan');
 const globalErrorHandler = require('../utils/errors/ErrorHandler');
 const rateLimit = require('express-rate-limit');
 const { NODE_ENV } = require('../config/index.js');
-const authRouter = require('../api/routes/auth.routes');
-const userRouter = require('../api/routes/user.routes');
-const taskRouter = require('../api/routes/task.routes');
-const timetableRouter = require('../api/routes/timetable.routes');
+// const authRouter = require('../api/routes/auth.routes');
+// const userRouter = require('../api/routes/user.routes');
+// const taskRouter = require('../api/routes/task.routes');
+// const timetableRouter = require('../api/routes/timetable.routes');
 const AppError = require('../utils/errors/AppError');
+const {
+    authRoutes,
+    userRoutes,
+    taskRoutes,
+    timetableRoutes,
+} = require('../api/routes');
 
 const create = async (app) => {
     app.use(helmet());
@@ -46,10 +52,10 @@ const create = async (app) => {
     if (NODE_ENV === 'development') {
         app.use(morgan('dev'));
     }
-    app.use('/api/v1', authRouter);
-    app.use('/api/v1/users', userRouter);
-    app.use('/api/v1/task', taskRouter);
-    app.use('/api/v1/timetable', timetableRouter);
+    app.use('/api/v1', authRoutes);
+    app.use('/api/v1/users', userRoutes);
+    app.use('/api/v1/task', taskRoutes);
+    app.use('/api/v1/timetable', timetableRoutes);
 
     app.all('*', (req, res, next) => {
         next(

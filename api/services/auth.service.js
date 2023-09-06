@@ -1,10 +1,10 @@
 const AppError = require('../../utils/errors/AppError.js');
 const Email = require('../../utils/email.js');
-const User = require('../models/user.model.js');
+const { UserModel } = require('../models');
 const crypto = require('crypto');
 
 exports.login = async (login, password) => {
-    const user = await User.findOne({
+    const user = await UserModel.findOne({
         username: login,
     }).select('+password');
 
@@ -18,13 +18,13 @@ exports.login = async (login, password) => {
 };
 
 exports.signup = async (newUser, url) => {
-    const exists = await User.exists({
+    const exists = await UserModel.exists({
         email: newUser.email,
     });
     if (exists) {
         return new AppError(`${newUser.email} is already registered`, 400);
     } else {
-        const user = await User.create(newUser);
+        const user = await UserModel.create(newUser);
 
         const urlWithToken = url + user.verifyToken;
 
@@ -37,13 +37,13 @@ exports.signup = async (newUser, url) => {
 };
 
 exports.me = async (userId) => {
-    const user = await User.findById(userId);
+    const user = await UserModel.findById(userId);
 
     return user;
 };
 
 exports.verify = async (token) => {
-    const user = await User.findOne({
+    const user = await UserModel.findOne({
         verifyToken: token,
     });
 
@@ -55,7 +55,7 @@ exports.verify = async (token) => {
 };
 
 exports.forgotPassword = async (email, url) => {
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
         return new AppError('There is no user with this email address.', 400);
     }
@@ -82,7 +82,7 @@ exports.forgotPassword = async (email, url) => {
 exports.resetPassword = async (token, password, confirmPassword) => {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    const user = await User.findOne({
+    const user = await UserModel.findOne({
         passwordResetToken: hashedToken,
         passwordResetExpires: { $gt: Date.now() },
     });
@@ -99,7 +99,7 @@ exports.resetPassword = async (token, password, confirmPassword) => {
 };
 
 exports.sendVerifyEmail = async (email, url) => {
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
         return new AppError('There is no user with this email address.', 400);
     }

@@ -1,9 +1,9 @@
 const AppError = require('../../utils/errors/AppError');
 const Task = require('../models/task.model');
-const Timetable = require('../models/timetable.model');
+const { TaskModel, TimetableModel } = require('../models');
 
 exports.getTask = async (id) => {
-    return await Task.findById(id);
+    return await TaskModel.findById(id);
 };
 
 exports.createTask = async (task) => {
@@ -13,7 +13,7 @@ exports.createTask = async (task) => {
         throw new AppError(`Invalid Hours`, 400);
     }
 
-    const timetableDoc = await Timetable.findById(timetable);
+    const timetableDoc = await TimetableModel.findById(timetable);
     if (!timetableDoc) {
         throw new AppError('Timetable not found', 400);
     }
@@ -25,7 +25,7 @@ exports.createTask = async (task) => {
         );
     }
 
-    const overlappingTasks = await Task.find({
+    const overlappingTasks = await TaskModel.find({
         timetable: timetable,
         $or: [
             {
@@ -39,13 +39,13 @@ exports.createTask = async (task) => {
         throw new AppError('Task time overlaps with existing tasks', 400);
     }
 
-    const createdTask = await Task.create({
+    const createdTask = await TaskModel.create({
         ...task,
         startDate: startDate,
         endDate: endDate,
     });
 
-    await Timetable.updateOne(
+    await TimetableModel.updateOne(
         { _id: timetable },
         { $addToSet: { tasks: createdTask._id } },
     );
@@ -60,12 +60,16 @@ exports.updateTask = async (id, body, role) => {
     }
     let updatedTask;
     if (role === 'admin') {
-        updatedTask = await Task.findByIdAndUpdate({ _id: task.id }, body, {
-            new: true,
-            runValidators: true,
-        });
+        updatedTask = await TaskModel.findByIdAndUpdate(
+            { _id: task.id },
+            body,
+            {
+                new: true,
+                runValidators: true,
+            },
+        );
     } else {
-        updatedTask = await Task.findByIdAndUpdate(
+        updatedTask = await TaskModel.findByIdAndUpdate(
             {
                 _id: task._id,
             },
@@ -83,13 +87,13 @@ exports.updateTask = async (id, body, role) => {
 };
 
 exports.deleteTask = async (id) => {
-    const task = await Task.findByIdAndDelete(id);
+    const task = await TaskModel.findByIdAndDelete(id);
 
     if (!task) {
         return false;
     }
 
-    const timetable = await Timetable.updateOne(
+    const timetable = await TimetableModel.updateOne(
         {
             _id: task.timetable,
         },
