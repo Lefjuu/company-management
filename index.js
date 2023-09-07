@@ -13,7 +13,7 @@ process.on('uncaughtException', (err) => {
 
         app.listen(SERVER_PORT, () => {
             console.log(
-                `🚀 Server is ready!
+                `✔️  Server is ready.
                 \nmode: ${NODE_ENV}
                 \nserver: http://${SERVER_HOSTNAME}:${SERVER_PORT}`,
             );

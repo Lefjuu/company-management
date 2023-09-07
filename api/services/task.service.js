@@ -1,9 +1,25 @@
 const AppError = require('../../utils/errors/AppError');
 const Task = require('../models/task.model');
 const { TaskModel, TimetableModel } = require('../models');
+const { getAsync, setAsync } = require('../../libs/redis.lib');
+const { REDIS_EXPIRES_IN } = require('../../config');
 
 exports.getTask = async (id) => {
-    return await TaskModel.findById(id);
+    const cacheKey = `task_${id}`;
+
+    const cachedTask = await getAsync(cacheKey);
+
+    if (cachedTask) {
+        return JSON.parse(cachedTask);
+    }
+
+    const task = await TaskModel.findById(id);
+
+    if (task) {
+        await setAsync(cacheKey, JSON.stringify(task), 'EX', REDIS_EXPIRES_IN);
+    }
+
+    return task;
 };
 
 exports.createTask = async (task) => {

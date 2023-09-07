@@ -25,6 +25,7 @@ exports.MONGODB_PASSWORD = process.env.MONGODB_PASSWORD;
 
 exports.REDIS_HOSTNAME = process.env.REDIS_HOSTNAME;
 exports.REDIS_PORT = process.env.REDIS_PORT;
+exports.REDIS_EXPIRES_IN = process.env.REDIS_EXPIRES_IN;
 exports.REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 
 exports.EMAIL_FROM = process.env.EMAIL_FROM;

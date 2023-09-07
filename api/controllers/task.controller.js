@@ -1,5 +1,5 @@
 const AppError = require('../../utils/errors/AppError');
-const catchError = require('../../utils/errors/catchError');
+const catchError = require('../../utils/errors/CatchError');
 const { TaskService } = require('../services');
 
 exports.getTask = catchError(async (req, res, next) => {
