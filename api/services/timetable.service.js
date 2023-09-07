@@ -1,5 +1,6 @@
 const { TimetableModel } = require('../models');
-const { redisClient, getAsync, setAsync } = require('../../libs/redis.lib');
+const { getAsync, setAsync } = require('../../libs/redis.lib');
+const { REDIS_EXPIRES_IN } = require('../../config');
 
 function isDateFormat(input) {
     const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
@@ -11,43 +12,40 @@ function isMongoObjectId(input) {
 }
 
 exports.getTimetable = async (param, currentUser, employeeId) => {
-    if (employeeId && isDateFormat(param)) {
-        const existingTimetable = await TimetableModel.findOne({
-            userId: employeeId,
-            currentDate: param,
-        });
+    const cacheKey = `timetable_${param}_${currentUser}_${employeeId || ''}`;
 
-        if (existingTimetable) {
-            return existingTimetable;
-        }
-        return await TimetableModel.create({
+    const cachedTimetable = await getAsync(cacheKey);
+
+    if (cachedTimetable) {
+        return JSON.parse(cachedTimetable);
+    }
+
+    let timetable;
+
+    if (employeeId && isDateFormat(param)) {
+        timetable = await TimetableModel.findOne({
             userId: employeeId,
             currentDate: param,
         });
-    }
-    if (isDateFormat(param)) {
-        const existingTimetable = await TimetableModel.findOne({
+    } else if (isDateFormat(param)) {
+        timetable = await TimetableModel.findOne({
             currentDate: param,
             userId: currentUser,
         });
-
-        if (existingTimetable) {
-            return existingTimetable;
-        }
     } else if (isMongoObjectId(param)) {
-        const existingTimetable = await TimetableModel.findById(param);
-
-        if (existingTimetable) {
-            return existingTimetable;
-        }
+        timetable = await TimetableModel.findById(param);
     }
 
-    const newTimetable = await TimetableModel.create({
-        userId: currentUser,
-        currentDate: param,
-    });
+    if (!timetable) {
+        timetable = await TimetableModel.create({
+            userId: currentUser,
+            currentDate: param,
+        });
+    }
 
-    return newTimetable;
+    await setAsync(cacheKey, JSON.stringify(timetable), 'EX', REDIS_EXPIRES_IN);
+
+    return timetable;
 };
 
 exports.getTodayTimetable = async (userId, callback) => {
@@ -66,11 +64,8 @@ exports.getTodayTimetable = async (userId, callback) => {
         console.log(cacheKey);
         const cachedData = await getAsync(cacheKey);
         if (cachedData) {
-            console.log(cachedData);
             return JSON.parse(cachedData);
         }
-
-        console.log('Cache miss, fetching from the database.');
 
         const existingTimetable = await TimetableModel.findOne({
             userId: userId,
@@ -78,10 +73,6 @@ exports.getTodayTimetable = async (userId, callback) => {
         });
 
         if (!existingTimetable) {
-            console.log(
-                'Data not found in the database, creating a new timetable.',
-            );
-
             const createdTimetable = await TimetableModel.create({
                 userId,
                 currentDate: formattedDate,
@@ -91,17 +82,18 @@ exports.getTodayTimetable = async (userId, callback) => {
                 cacheKey,
                 JSON.stringify(createdTimetable),
                 'EX',
-                3600,
+                REDIS_EXPIRES_IN,
             );
-
-            console.log('New timetable created and cached.');
 
             return createdTimetable;
         }
 
-        await setAsync(cacheKey, JSON.stringify(existingTimetable), 'EX', 7200);
-
-        console.log('Existing timetable fetched from the database and cached.');
+        await setAsync(
+            cacheKey,
+            JSON.stringify(existingTimetable),
+            'EX',
+            REDIS_EXPIRES_IN,
+        );
 
         return existingTimetable;
     } catch (error) {

@@ -26,7 +26,7 @@ module.exports = db = () => {
         const mongo = mongoose.connection;
 
         mongo.once('connected', () => {
-            console.log('✅ MongoDB: connected!');
+            console.log('✔️  MongoDB: connected.');
             resolve();
         });
 
