@@ -2,7 +2,6 @@ const redis = require('redis');
 const util = require('util');
 const { REDIS_HOSTNAME, REDIS_PORT } = require('../config');
 
-console.log(`${REDIS_HOSTNAME}:${REDIS_PORT}`);
 const client = redis.createClient({
     url: `${REDIS_HOSTNAME}:${REDIS_PORT}`,
 

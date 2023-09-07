@@ -1,5 +1,5 @@
 const AppError = require('../../utils/errors/AppError');
-const catchError = require('../../utils/errors/catchError');
+const catchError = require('../../utils/errors/CatchError');
 const { TimetableService } = require('../services');
 
 exports.getTimetable = catchError(async (req, res, next) => {

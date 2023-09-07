@@ -1,5 +1,5 @@
 const { AuthService, UserService } = require('../services');
-const catchError = require('../../utils/errors/catchError');
+const catchError = require('../../utils/errors/CatchError');
 const AppError = require('../../utils/errors/AppError');
 const JwtUtils = require('../../utils/jwt');
 

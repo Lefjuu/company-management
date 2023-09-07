@@ -1,5 +1,5 @@
 const AppError = require('../../utils/errors/AppError');
-const catchError = require('../../utils/errors/catchError');
+const catchError = require('../../utils/errors/CatchError');
 const UserService = require('../services/user.service');
 
 exports.getUser = catchError(async (req, res, next) => {
