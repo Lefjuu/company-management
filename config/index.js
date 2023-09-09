@@ -34,6 +34,8 @@ exports.EMAIL_PORT = process.env.EMAIL_PORT;
 exports.EMAIL_USERNAME = process.env.EMAIL_USERNAME;
 exports.EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
 
+exports.CLIENT_HOSTNAME = process.env.CLIENT_HOSTNAME;
+
 exports.REDIS_TTL = {
     trimester: 7776000,
 };
